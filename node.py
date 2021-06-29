@@ -17,6 +17,8 @@ class Node:
         # packet queue
         self.queue = self.generate_queue()
         self.num_dropped_packets = 0
+        # non-persistent node attributes
+        self.num_busy_detections = 0
 
     # generate a random variable
     def generate_random_variable(self, mean):
@@ -49,6 +51,14 @@ class Node:
         self.num_collisions = 0
         self.queue.popleft()
 
+    # when popping the front packet, always reset the number of collisions
+    def pop_packet_and_reset_busy_detections(self):
+        if not self.queue:
+            print('Error, Queue is empty cannot pop packet')
+            return
+
+        self.num_busy_detections = 0
+        self.queue.popleft()
 
     # service a packet transmission that results in a collision
     # drop packet if too many collisions
@@ -71,6 +81,27 @@ class Node:
                     self.queue[i] = new_waiting_time
                 else:
                     break
+
+    # service a bus read that results in a busy detection
+    # drop packet if too many busy detections
+    # calculate the backoff time and update packets arriving in transmission interval
+    def service_bus_busy_detection(self):
+        self.num_busy_detections += 1
+
+        # too many bus busy detections, drop the packets and reset the detection counter
+        if self.num_busy_detections > self.max_collisions:
+            self.num_dropped_packets += 1
+            self.pop_packet_and_reset_busy_detections()
+
+        else:
+            backoff_time = self.get_backoff_time(self.lan_speed, self.num_busy_detections)
+            new_waiting_time = self.queue[0] + backoff_time
+
+            for i in range(len(self.queue)):
+                self.queue[i] = new_waiting_time
+        
+        
+
 
 
 

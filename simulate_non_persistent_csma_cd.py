@@ -15,7 +15,7 @@ for N in nodes:
     for i in range(len(arrival_rates)):
         A = arrival_rates[i]
 
-        csma_cd_sim = CSMA_CD(N, A, R, L, D, S, T)
+        csma_cd_sim = CSMA_CD(N, A, R, L, D, S, T, False)
         csma_cd_sim.simulate()
         csma_cd_sim.print_results()
         
@@ -35,11 +35,11 @@ plt.xlabel('Number of nodes')
 plt.ylabel('Efficiency')
 plt.title('Number of Nodes vs. Efficiency for Different Arrival Rates')
 plt.legend()
-plt.savefig('q1_efficiency.png')
+plt.savefig('q2_efficiency.png')
 
 plt.figure(1)
 plt.xlabel('Number of nodes')
 plt.ylabel('Throughput')
 plt.title('Number of Nodes vs. Throughput for Different Arrival Rates')
 plt.legend()
-plt.savefig('q1_throughput.png')
+plt.savefig('q2_throughput.png')
