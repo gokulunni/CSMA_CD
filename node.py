@@ -37,10 +37,10 @@ class Node:
 
         return deck
 
-    # generate the backoff time after a collision
+    # generate the backoff time after a collision (random number * 512 bit-time)
     def get_backoff_time(self, lan_speed, num_collisions):
         k = randint(0, (2**num_collisions)-1)
-        return k * 512 / lan_speed
+        return k * (512 / lan_speed)
 
     # when popping the front packet, always reset the number of collisions
     def pop_packet_and_reset_collisions(self):
@@ -49,14 +49,6 @@ class Node:
             return
 
         self.num_collisions = 0
-        self.queue.popleft()
-
-    # when popping the front packet, always reset the number of collisions
-    def pop_packet_and_reset_busy_detections(self):
-        if not self.queue:
-            print('Error, Queue is empty cannot pop packet')
-            return
-
         self.num_busy_detections = 0
         self.queue.popleft()
 
@@ -76,6 +68,13 @@ class Node:
             backoff_time = self.get_backoff_time(self.lan_speed, self.num_collisions)
             new_waiting_time = self.queue[0] + backoff_time
 
+            print("collision - self.queue[0]: {}".format(self.queue[0]))
+            print("collision - Backoff time {}: ".format(backoff_time))
+
+            if new_waiting_time > self.max_simulation_time:
+                self.queue = None
+                return
+
             for i in range(len(self.queue)):
                 if self.queue[i] < new_waiting_time:
                     self.queue[i] = new_waiting_time
@@ -91,14 +90,22 @@ class Node:
         # too many bus busy detections, drop the packets and reset the detection counter
         if self.num_busy_detections > self.max_collisions:
             self.num_dropped_packets += 1
-            self.pop_packet_and_reset_busy_detections()
+            self.pop_packet_and_reset_collisions()
 
         else:
             backoff_time = self.get_backoff_time(self.lan_speed, self.num_busy_detections)
             new_waiting_time = self.queue[0] + backoff_time
+            
+            #print("Busy - self.queue[0]: {}".format(self.queue[0]))
+            #print("Busy - Backoff time {}: ".format(backoff_time))
+            
+            if new_waiting_time > self.max_simulation_time:
+                self.queue = None
+                return
 
             for i in range(len(self.queue)):
-                self.queue[i] = new_waiting_time
+                if self.queue[i] < new_waiting_time:
+                    self.queue[i] = new_waiting_time
         
         
 

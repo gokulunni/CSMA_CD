@@ -18,7 +18,7 @@ class CSMA_CD:
         self.propagation_speed = propagation_speed
         self.persistent = persistent
 
-        self.nodes = self.build_nodes(num_nodes, arrival_rate, 10, 1000, lan_speed)
+        self.nodes = self.build_nodes(num_nodes, arrival_rate, 10, max_simulation_time, lan_speed)
 
         self.efficiency = None
         self.throughput = None
@@ -85,13 +85,12 @@ class CSMA_CD:
                     # if node can detect a busy bus, it will wait until the bus is free
                     # update all packets in the node queue that were supposed to transmit while the bus is detected as busy
                     elif node.queue[0] > (self.curr_time + propagation_time) and node.queue[0] < (self.curr_time + propagation_time + transmission_time):
-                        if self.persistent:
-                            for i in range(len(node.queue)):
-                                if node.queue[i] > (self.curr_time + propagation_time) and node.queue[i] < (self.curr_time + propagation_time + transmission_time):
-                                        node.queue[i] = self.curr_time + propagation_time + transmission_time
-                                else:
-                                    break
-                        else:
+                        for i in range(len(node.queue)):
+                            if node.queue[i] > (self.curr_time + propagation_time) and node.queue[i] < (self.curr_time + propagation_time + transmission_time):
+                                    node.queue[i] = self.curr_time + propagation_time + transmission_time
+                            else:
+                                break
+                        if not self.persistent:
                             node.service_bus_busy_detection()
 
 
@@ -108,7 +107,6 @@ class CSMA_CD:
                 node_with_leaving_packet.service_collision_transmission()
             else:
                 node_with_leaving_packet.pop_packet_and_reset_collisions()
-                node_with_leaving_packet.pop_packet_and_reset_busy_detections()
                 self.num_successful_transmitted_packets += 1
 
     # calculate and print results of the simulation
@@ -119,7 +117,7 @@ class CSMA_CD:
             total_dropped_packets += node.num_dropped_packets
 
         self.efficiency = self.num_successful_transmitted_packets / self.num_transmitted_packets
-        self.throughput = (self.packet_length * self.num_successful_transmitted_packets) / (self.lan_speed * self.curr_time)
+        self.throughput = (self.packet_length * self.num_successful_transmitted_packets) / (10**6 * self.curr_time)
 
         print('\n#######################\n')
         print('Simulation with ', self.num_nodes, ' nodes')
