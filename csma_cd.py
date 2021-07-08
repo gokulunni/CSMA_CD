@@ -59,7 +59,6 @@ class CSMA_CD:
             self.curr_time = node_with_leaving_packet.queue[0]
             self.num_transmitted_packets += 1
 
-            
             collision_occurred = False
             # check for collisions between other nodes
             for node in self.nodes:
@@ -85,12 +84,14 @@ class CSMA_CD:
                     # if node can detect a busy bus, it will wait until the bus is free
                     # update all packets in the node queue that were supposed to transmit while the bus is detected as busy
                     elif node.queue[0] > (self.curr_time + propagation_time) and node.queue[0] < (self.curr_time + propagation_time + transmission_time):
-                        for i in range(len(node.queue)):
-                            if node.queue[i] > (self.curr_time + propagation_time) and node.queue[i] < (self.curr_time + propagation_time + transmission_time):
-                                    node.queue[i] = self.curr_time + propagation_time + transmission_time
-                            else:
-                                break
-                        if not self.persistent:
+                        if self.persistent:
+                            for i in range(len(node.queue)):
+                                if node.queue[i] > (self.curr_time + propagation_time) and node.queue[i] < (self.curr_time + propagation_time + transmission_time):
+                                        node.queue[i] = self.curr_time + propagation_time + transmission_time
+                                else:
+                                    break
+                        else:
+                            node.queue[0] = self.curr_time + propagation_time + transmission_time
                             node.service_bus_busy_detection()
 
 

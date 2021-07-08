@@ -68,9 +68,6 @@ class Node:
             backoff_time = self.get_backoff_time(self.lan_speed, self.num_collisions)
             new_waiting_time = self.queue[0] + backoff_time
 
-            print("collision - self.queue[0]: {}".format(self.queue[0]))
-            print("collision - Backoff time {}: ".format(backoff_time))
-
             if new_waiting_time > self.max_simulation_time:
                 self.queue = None
                 return
@@ -87,18 +84,16 @@ class Node:
     def service_bus_busy_detection(self):
         self.num_busy_detections += 1
 
-        # too many bus busy detections, drop the packets and reset the detection counter
+        # too many detections, drop the packet and reset collision counter
         if self.num_busy_detections > self.max_collisions:
             self.num_dropped_packets += 1
             self.pop_packet_and_reset_collisions()
 
+        # get the new waiting time and update packets in queue that were originally suppposed to leave before the waiting time
         else:
             backoff_time = self.get_backoff_time(self.lan_speed, self.num_busy_detections)
             new_waiting_time = self.queue[0] + backoff_time
-            
-            #print("Busy - self.queue[0]: {}".format(self.queue[0]))
-            #print("Busy - Backoff time {}: ".format(backoff_time))
-            
+
             if new_waiting_time > self.max_simulation_time:
                 self.queue = None
                 return
@@ -106,6 +101,9 @@ class Node:
             for i in range(len(self.queue)):
                 if self.queue[i] < new_waiting_time:
                     self.queue[i] = new_waiting_time
+                else:
+                    break
+
         
         
 
